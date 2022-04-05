@@ -62,7 +62,6 @@ function getUVI(id, cityLat, cityLong) {
     })
 }
 
-// main function that clears divs and calls current and 5-day forecasts for city
 function displayCityWeather() {
     var thisCity = $(this).attr("data-city");
 
@@ -73,6 +72,43 @@ function displayCityWeather() {
     getForecast(thisCity, id);
     
 }
-
-// calls main on page load function
 init();
+function getForecast(thisCity, id) {
+    var forecastURL = `https://api.openweathermap.org/data/2.5/forecast?q=${thisCity}&units=imperial&appid=${id}`;
+
+    $.ajax({
+        url: forecastURL,
+        method: "GET"
+    }).then(function (data) {
+        for (i = 0; i < data.list.length; i++) {
+            if (data.list[i].dt_txt.search("15:00:00") != -1) {
+                var forecastDate = data.list[i];
+                $(".forecast").append(
+                    `<div class="card bg-primary shadow m-4">
+                        <div class="card-body">
+                            <h4 class="card-title">${(new Date(1000 * forecastDate.dt).getUTCMonth()) + 1}/${new Date(1000 * forecastDate.dt).getUTCDate()}/${new Date(1000 * forecastDate.dt).getUTCFullYear()}</h4>
+                            <div class="card-text">
+                                <img src="http://openweathermap.org/img/w/${forecastDate.weather[0].icon}.png">
+                                <p class="card-text">Temp: ${forecastDate.main.temp} &degF</p>
+                                <p class="card-text">Humidity: ${forecastDate.main.humidity} %</p>
+                            </div>
+                        </div>
+                    </div>`
+                );
+            }
+        }
+
+    })
+}
+
+$("form").on("submit", function(event) {
+    event.preventDefault();
+    console.log("im here!")
+    var newCity = $("#citySearchInput").val().trim();
+    cityList.push(newCity);
+    createCityList();
+    storeCities();
+    $("#citySearchInput").val("");
+})
+
+$(".cityList").on("click", ".cityButton", displayCityWeather);
